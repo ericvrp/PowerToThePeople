@@ -1,36 +1,38 @@
 #!/usr/bin/env python
 
-# Reading an analogue sensor with
-# a single GPIO pin
+import RPi.GPIO as GPIO
+from time import time, sleep
 
-# Author : Matt Hawkins
-# Distribution : Raspbian
-# Python : 2.7
-# GPIO   : RPi.GPIO v3.1.0a
 
-import RPi.GPIO as GPIO, time
+LDR_PIN             = 4		#LDR = Light Dependent Resistore
+MAX_MEASUREMENTS    = 1999	#assume there is no led flashing with this little light
+IMPRESSIONS_PER_kWh = 1000	#my electricity meter flashes a light this many times per kWh
 
-# Tell the GPIO library to use
-# Broadcom GPIO references
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
 
-# Define function to measure charge time
-def RCtime (PiPin):
-  measurement = 0
-  # Discharge capacitor
-  GPIO.setup(PiPin, GPIO.OUT)
-  GPIO.output(PiPin, GPIO.LOW)
-  time.sleep(0.1)
+def	RCtime():
+	# Discharge capacitor
+	GPIO.setup(LDR_PIN, GPIO.OUT)
+	GPIO.output(LDR_PIN, GPIO.LOW)
+	sleep(0.1)	#XXX Do we really need this?
 
-  GPIO.setup(PiPin, GPIO.IN)
-  # Count loops until voltage across
-  # capacitor reads high on GPIO
-  while (GPIO.input(PiPin) == GPIO.LOW):
-    measurement += 1
+	GPIO.setup(LDR_PIN, GPIO.IN)
+	nMeasurements, start = 0, time()
+	#Wait until voltage across capacitor reads high on GPIO
+	while nMeasurements < MAX_MEASUREMENTS and GPIO.input(LDR_PIN) == GPIO.LOW:
+		nMeasurements += 1
 
-  return measurement
+	duration = time() - start
+	return nMeasurements, duration
 
-while True:
-  print RCtime(4) # Measure timing using GPIO4
 
+def	main():
+	GPIO.setwarnings(False)	#shut up!
+	GPIO.setmode(GPIO.BCM)	#use Broadcom GPIO references (instead of board references)
+
+	while True:
+		nMeasurements, duration = RCtime()
+		duration = int(duration * 100000.0) # Low values for much light
+		print '%4d measurements in %4d time units' % (nMeasurements, duration)
+
+if __name__ == '__main__':
+	main()
