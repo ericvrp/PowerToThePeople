@@ -12,6 +12,7 @@ import RPi.GPIO as GPIO, time
 
 # Tell the GPIO library to use
 # Broadcom GPIO references
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 # Define function to measure charge time
@@ -30,10 +31,6 @@ def RCtime (PiPin):
 
   return measurement
 
-# Main program loop
-try:
-	while True:
-		print RCtime(4) # Measure timing using GPIO4
-except KeyboardInterrupt:
-	GPIO.cleanup()
+while True:
+  print RCtime(4) # Measure timing using GPIO4
 
