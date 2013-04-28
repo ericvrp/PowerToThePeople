@@ -13,6 +13,7 @@ except ImportError:
 LDR_PIN              = 4	#LDR = Light Dependent Resistore
 MAX_MEASUREMENTS     = 9000	#assume there is no led flashing with this little light
 IMPRESSION_THRESHOLD = 0.9	#if measurements < MAX_MEASUREMENTS * IMPRESSION_THRESHOLD: then we assume led flashed
+MAX_WATT             = 7500	#it's probably an measuring error if we're above
 #IMPRESSIONS_PER_kWh  = 1000	#my electricity meter flashes a light this many times per kWh
 PVOUTPUT_INTERVAL    = 300	#5 minutes between sending updates
 
@@ -51,6 +52,10 @@ def	main():
 			lastWatt = watt
 			watt = 3600 / impressionDuration
 			lastLedFlashTime = now
+
+			if watt > MAX_WATT:
+				print 'Ignore %d Watt' % watt
+				continue
 
 			print 'Impression took %.1f seconds (%d Watt) [%d Watt change]' %\
 				(impressionDuration, watt, watt - lastWatt)
