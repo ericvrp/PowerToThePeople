@@ -4,6 +4,8 @@ import RPi.GPIO as GPIO
 from time import time, sleep
 
 
+# pvoutput.org-support3
+
 LDR_PIN              = 4	#LDR = Light Dependent Resistore
 MAX_MEASUREMENTS     = 9000	#assume there is no led flashing with this little light
 IMPRESSION_THRESHOLD = 0.9	#if measurements < MAX_MEASUREMENTS * IMPRESSION_THRESHOLD: then we assume led flashed
