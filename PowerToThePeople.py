@@ -19,10 +19,12 @@ PVOUTPUT_INTERVAL    = 300	#5 minutes between sending updates
 
 
 def	RCtime():
+	sleep(0.1)	#try to avoid detecting the same led flash twice
+
 	# Discharge capacitor
 	GPIO.setup(LDR_PIN, GPIO.OUT)
 	GPIO.output(LDR_PIN, GPIO.LOW)
-	sleep(0.1)	#XXX Do we really need this?
+	sleep(0.1)
 
 	GPIO.setup(LDR_PIN, GPIO.IN)
 	nMeasurements, start = 0, time()
