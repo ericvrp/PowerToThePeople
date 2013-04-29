@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import RPi.GPIO as GPIO
 from requests import get
 from time import time, sleep, strftime
 
@@ -10,42 +9,69 @@ except ImportError:
 	from defaults import *
 	print 'Warning! copy defaults.py to config.py and edit that file!'
 
-LDR_PIN              = 4	#LDR = Light Dependent Resistore
-MAX_MEASUREMENTS     = 9000	#assume there is no led flashing with this little light
-IMPRESSION_THRESHOLD = 0.9	#if measurements < MAX_MEASUREMENTS * IMPRESSION_THRESHOLD: then we assume led flashed
-MAX_WATT             = 7500	#it's probably an measuring error if we're above
-#IMPRESSIONS_PER_kWh  = 1000	#my electricity meter flashes a light this many times per kWh
+if source == 'gpio':
+	import RPi.GPIO as GPIO
+
+	LDR_PIN              = 4	#LDR = Light Dependent Resistore
+	MAX_MEASUREMENTS     = 9000	#assume there is no led flashing with this little light
+	IMPRESSION_THRESHOLD = 0.9	#if measurements < MAX_MEASUREMENTS * IMPRESSION_THRESHOLD: then we assume led flashed
+	MAX_WATT             = 7500	#it's probably an measuring error if we're above
+	#IMPRESSIONS_PER_kWh  = 1000	#my electricity meter flashes a light this many times per kWh
+
+elif source == 'usb':
+	MAX_MEASUREMENTS     = 9000	#XXX refactor code and get rid of this
+	IMPRESSION_THRESHOLD = 0.9	#XXX refactor code and get rid of this
+	MAX_WATT             = 7500	#XXX refactor code and get rid of this
+
+	import	serial
+
+	ser = serial.Serial('/dev/ttyACM0', 9600)
+	ser.flushInput()
+
+
 PVOUTPUT_INTERVAL    = 300	#5 minutes between sending updates
 
 
-def	RCtime():
-	sleep(0.1)	#try to avoid detecting the same led flash twice
+def	GetLDR():
+	if source == 'gpio':
+		sleep(0.1)	#try to avoid detecting the same led flash twice
 
-	# Discharge capacitor
-	GPIO.setup(LDR_PIN, GPIO.OUT)
-	GPIO.output(LDR_PIN, GPIO.LOW)
-	sleep(0.1)
+		# Discharge capacitor
+		GPIO.setup(LDR_PIN, GPIO.OUT)
+		GPIO.output(LDR_PIN, GPIO.LOW)
+		sleep(0.1)
 
-	GPIO.setup(LDR_PIN, GPIO.IN)
-	nMeasurements, start = 0, time()
-	#Wait until voltage across capacitor reads high on GPIO
-	while nMeasurements < MAX_MEASUREMENTS and GPIO.input(LDR_PIN) == GPIO.LOW:
-		nMeasurements += 1
+		GPIO.setup(LDR_PIN, GPIO.IN)
+		nMeasurements, start = 0, time()
+		#Wait until voltage across capacitor reads high on GPIO
+		while nMeasurements < MAX_MEASUREMENTS and GPIO.input(LDR_PIN) == GPIO.LOW:
+			nMeasurements += 1
 
-	duration = time() - start
-	return nMeasurements, duration
+		duration = time() - start
+		return nMeasurements, duration
+
+	elif source == 'usb':
+
+		while not ser.inWaiting():
+			sleep(0.1)
+
+		s = ser.readline(),
+		#print '***', s,
+		return 0, 0
 
 
 def	main():
-	GPIO.setwarnings(False)	#shut up!
-	GPIO.setmode(GPIO.BCM)	#use Broadcom GPIO references (instead of board references)
+	if source == 'gpio':
+		GPIO.setwarnings(False)	#shut up!
+		GPIO.setmode(GPIO.BCM)	#use Broadcom GPIO references (instead of board references)
 
 	lastPvOutputTime = time()
 	lastLedFlashTime = time()	#first impression duration will be inaccurate
 	watt = 0
+	nReadings = 0
 
 	while True:
-		nMeasurements, duration = RCtime()
+		nMeasurements, duration = GetLDR()
 		duration = int(duration * 100000.0) # Low values for much light
 		now = time()
 
@@ -55,12 +81,15 @@ def	main():
 			watt = 3600 / impressionDuration
 			lastLedFlashTime = now
 
+			nReadings += 1
+			if nReadings == 1:
+				continue
+
 			if watt > MAX_WATT:
 				print 'Ignore %d Watt' % watt
 				continue
 
-			print 'Impression took %.1f seconds (%d Watt) [%d Watt change]' %\
-				(impressionDuration, watt, watt - lastWatt)
+			print '%4d Watt : %4.1f seconds between led flashes' % (watt, impressionDuration)
 
 			if now >= lastPvOutputTime + PVOUTPUT_INTERVAL:
 				payload = {
@@ -73,10 +102,11 @@ def	main():
 				r = get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload)
 				#XXX post current power consumption for the moment
 				lastPvOutputTime = now
-				print 'Sent power consumption value to pvoutput.org (response %d)' % r.status_code
+				if r.status_code == 200:
+					print 'pvoutput.org updated'
+				else:
+					print 'Error: pvoutput.org gives status code %d' % r.status_code
 
-		#print '%4d measurements in %5d time units (%d Watt) [%d Watt change]' %\
-		#	(nMeasurements, duration, watt, watt - lastWatt)
 
 if __name__ == '__main__':
 	main()
