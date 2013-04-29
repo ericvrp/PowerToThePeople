@@ -52,8 +52,8 @@ def	GetLDR():
 
 	elif source == 'usb':
 
-		while not ser.inWaiting():
-			sleep(0.1)
+		#while not ser.inWaiting():
+		#	sleep(0.1)
 
 		s = ser.readline(),
 		#print '***', s,
