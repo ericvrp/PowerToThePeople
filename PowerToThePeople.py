@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
+import serial
 from requests import get
-from time import time, sleep, strftime
+from time import time, strftime, asctime
 
 try:
 	from config import *
@@ -9,103 +10,36 @@ except ImportError:
 	from defaults import *
 	print 'Warning! copy defaults.py to config.py and edit that file!'
 
-if source == 'gpio':
-	import RPi.GPIO as GPIO
-
-	LDR_PIN              = 4	#LDR = Light Dependent Resistore
-	MAX_MEASUREMENTS     = 9000	#assume there is no led flashing with this little light
-	IMPRESSION_THRESHOLD = 0.9	#if measurements < MAX_MEASUREMENTS * IMPRESSION_THRESHOLD: then we assume led flashed
-	MAX_WATT             = 7500	#it's probably an measuring error if we're above
-	#IMPRESSIONS_PER_kWh  = 1000	#my electricity meter flashes a light this many times per kWh
-
-elif source == 'usb':
-	MAX_MEASUREMENTS     = 9000	#XXX refactor code and get rid of this
-	IMPRESSION_THRESHOLD = 0.9	#XXX refactor code and get rid of this
-	MAX_WATT             = 7500	#XXX refactor code and get rid of this
-
-	import	serial
-
-	ser = serial.Serial('/dev/ttyACM0', 9600)
-	ser.flushInput()
-
-
-PVOUTPUT_INTERVAL    = 300	#5 minutes between sending updates
-
-
-def	GetLDR():
-	if source == 'gpio':
-		sleep(0.1)	#try to avoid detecting the same led flash twice
-
-		# Discharge capacitor
-		GPIO.setup(LDR_PIN, GPIO.OUT)
-		GPIO.output(LDR_PIN, GPIO.LOW)
-		sleep(0.1)
-
-		GPIO.setup(LDR_PIN, GPIO.IN)
-		nMeasurements, start = 0, time()
-		#Wait until voltage across capacitor reads high on GPIO
-		while nMeasurements < MAX_MEASUREMENTS and GPIO.input(LDR_PIN) == GPIO.LOW:
-			nMeasurements += 1
-
-		duration = time() - start
-		return nMeasurements, duration
-
-	elif source == 'usb':
-
-		#while not ser.inWaiting():
-		#	sleep(0.1)
-
-		s = ser.readline(),
-		#print '***', s,
-		return 0, 0
+PVOUTPUT_INTERVAL = 300		#5 minutes between sending updates
 
 
 def	main():
-	if source == 'gpio':
-		GPIO.setwarnings(False)	#shut up!
-		GPIO.setmode(GPIO.BCM)	#use Broadcom GPIO references (instead of board references)
+	ser = serial.Serial('/dev/ttyACM0', 9600)
+	ser.flushInput()
+	ser.readline()	#Skip first led flash to get a proper duration after this
 
-	lastPvOutputTime = time()
-	lastLedFlashTime = time()	#first impression duration will be inaccurate
-	watt = 0
-	nReadings = 0
+	lastPvOutputTime = lastLedFlashTime = time()	#first impression duration will be inaccurate
 
 	while True:
-		nMeasurements, duration = GetLDR()
-		duration = int(duration * 100000.0) # Low values for much light
+		s = ser.readline()
+		#print '***', s,
+
 		now = time()
+		watt = 3600 / (now - lastLedFlashTime)
+		lastLedFlashTime = now
 
-		if nMeasurements < MAX_MEASUREMENTS * IMPRESSION_THRESHOLD:
-			impressionDuration = now - lastLedFlashTime
-			lastWatt = watt
-			watt = 3600 / impressionDuration
-			lastLedFlashTime = now
+		print '%s : %4d Watt' % (asctime(), watt)
 
-			nReadings += 1
-			if nReadings == 1:
-				continue
-
-			if watt > MAX_WATT:
-				print 'Ignore %d Watt' % watt
-				continue
-
-			print '%4d Watt : %4.1f seconds between led flashes' % (watt, impressionDuration)
-
-			if now >= lastPvOutputTime + PVOUTPUT_INTERVAL:
-				payload = {
-					'key' : pvoutput_key,
-					'sid' : pvoutput_sid,
-					'd'   : strftime('%Y%m%d'),
-					't'   : strftime('%H:%M'),
-					'v4'  : watt
-					}
-				r = get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload)
-				#XXX post current power consumption for the moment
-				lastPvOutputTime = now
-				if r.status_code == 200:
-					print 'pvoutput.org updated'
-				else:
-					print 'Error: pvoutput.org gives status code %d' % r.status_code
+		if now >= lastPvOutputTime + PVOUTPUT_INTERVAL: #XXX should post average power consumption
+			payload = {
+				'key' : pvoutput_key,
+				'sid' : pvoutput_sid,
+				'd'   : strftime('%Y%m%d'),
+				't'   : strftime('%H:%M'),
+				'v4'  : watt
+				}
+			r = get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload)
+			lastPvOutputTime = now
 
 
 if __name__ == '__main__':

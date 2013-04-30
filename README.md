@@ -2,10 +2,8 @@ PowerToThePeople
 ----------------
 
 Use the flashing led of my electricity meter to compute my power consumption. Show this info on pvoutput.org.
+The Raspberry Pi doesn't have an analog input so we will be using an Arduino for reading the Light Dependant Resistor (LDR). The two boards are communicating over usb.
 
-Schematics: http://learn.adafruit.com/basic-resistor-sensor-reading-on-raspberry-pi/basic-photocell-reading
-   (attach to GPIO port 4 (pin 7) instead of 18)
-   
-Install dependencies: sudo apt-get install python-rpi.gpio python-requests
+Install dependencies: sudo apt-get install python-requests
 
-Usage: sudo ./PowerToThePeople.py
+Usage: ./PowerToThePeople.py
