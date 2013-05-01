@@ -9,29 +9,34 @@ Then connect one end of a 10K resistor from Analog 0 to ground
 */
  
 const int LDR_PIN = 0;       // the cell and 10K pulldown are connected to a0
+const int THRESHOLD = 50;    // Or calibrate in setup
 
 void setup(void) {
-	Serial.begin(9600);	// We'll send debugging information via the Serial monitor
+	Serial.begin(115200);	// We'll send debugging information via the Serial monitor
+
+        /*
+	int photocellReading = analogRead(LDR_PIN);
+	int intensity_threshold = photocellReading * 2 + 10;	//Calibrate
+        Serial.print("Insensity threshold ");
+        Serial.println(intensity_threshold);
+        */
 }
  
 void loop(void) {
-	int photocellReading = analogRead(LDR_PIN);
-	int intensity_threshold = photocellReading * 2 + 32;	//Calibrate
+	int photocellReading;
 
 	do {
 		photocellReading = analogRead(LDR_PIN); 
-		//delay(1);	//minimal delay
-	} while (photocellReading < intensity_threshold);
+		delay(1);	//minimal delay
+	} while (photocellReading < THRESHOLD);
   
-	//Serial.print("Led flashed after ");
-	//Serial.print(n);
-	//Serial.print(" iterations. Intensity ");
+	Serial.print("Led intensity ");
 	Serial.println(photocellReading);     // the raw analog reading
 
 	//debounce...
-	//delay(250); 
+	delay(250); 
 	do {
 		photocellReading = analogRead(LDR_PIN); 
-		//delay(1);	//minimal delay
-	} while (photocellReading >= intensity_threshold);
+		delay(1);	//minimal delay
+	} while (photocellReading >= THRESHOLD);
 }
