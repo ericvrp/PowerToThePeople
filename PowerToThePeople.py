@@ -16,7 +16,6 @@ PVOUTPUT_INTERVAL = 300		#5 minutes between sending updates
 
 
 def	main():
-
 	usbDevice = check_output('ls /dev/ttyACM*', shell=True).strip()
 	ser = serial.Serial(usbDevice, 115200)
 	ser.flushInput()
@@ -35,6 +34,7 @@ def	main():
 		nLedFlashes += 1
 
 		print '%s : %4d Watt' % (asctime(), watt)
+		r = get('http://localhost:8083/watt/%d Watt' % watt)	#update webcache
 
 		if now >= lastPvOutputTime + PVOUTPUT_INTERVAL: #XXX should post average power consumption
 			watt_average = nLedFlashes * 3600 / (now - lastPvOutputTime)
