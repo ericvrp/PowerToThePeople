@@ -3,6 +3,8 @@
 import serial
 from requests import get
 from time import time, strftime, asctime
+from sys import stdout
+from subprocess import check_output
 
 try:
 	from config import *
@@ -14,7 +16,9 @@ PVOUTPUT_INTERVAL = 300		#5 minutes between sending updates
 
 
 def	main():
-	ser = serial.Serial('/dev/ttyACM0', 9600)
+
+	usbDevice = check_output('ls /dev/ttyACM*', shell=True).strip()
+	ser = serial.Serial(usbDevice, 115200)
 	ser.flushInput()
 	ser.readline()	#Skip first led flash to get a proper duration after this
 
@@ -45,6 +49,8 @@ def	main():
 			r = get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload)
 			lastPvOutputTime = now
 			nLedFlashes = 0
+
+		stdout.flush()
 
 
 if __name__ == '__main__':
