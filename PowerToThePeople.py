@@ -2,6 +2,7 @@
 
 import serial
 from requests import get
+from requests.exceptions import Timeout, ConnectionError
 from time import time, strftime, asctime
 from sys import stdout
 from subprocess import check_output
@@ -34,7 +35,10 @@ def	main():
 		nLedFlashes += 1
 
 		print '%s : %4d Watt' % (asctime(), watt)
-		r = get('http://localhost:8083/watt/%d Watt' % watt)	#update webcache
+		try:
+			r = get('http://127.0.0.1:8083/watt/%d Watt' % watt, timeout=1.0)	#update webcache
+		except Timeout:
+			print 'Warning: webcache update failed'
 
 		if now >= lastPvOutputTime + PVOUTPUT_INTERVAL: #XXX should post average power consumption
 			watt_average = nLedFlashes * 3600 / (now - lastPvOutputTime)
@@ -46,7 +50,10 @@ def	main():
 				't'   : strftime('%H:%M'),
 				'v4'  : watt_average
 				}
-			r = get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload)
+			try:
+				r = get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload, timeout=5.0)
+			except ConnectionError:
+				print 'Warning: pvoutput update failed'
 			lastPvOutputTime = now
 			nLedFlashes = 0
 
