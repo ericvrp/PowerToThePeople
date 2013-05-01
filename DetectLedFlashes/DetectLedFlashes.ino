@@ -9,7 +9,7 @@ Then connect one end of a 10K resistor from Analog 0 to ground
 */
  
 const int LDR_PIN = 0;       // the cell and 10K pulldown are connected to a0
-const int THRESHOLD = 50;    // Or calibrate in setup
+const int THRESHOLD = 200;    // Or calibrate in setup
 
 void setup(void) {
 	Serial.begin(115200);	// We'll send debugging information via the Serial monitor
@@ -34,7 +34,7 @@ void loop(void) {
 	Serial.println(photocellReading);     // the raw analog reading
 
 	//debounce...
-	delay(250); 
+	delay(100); 
 	do {
 		photocellReading = analogRead(LDR_PIN); 
 		delay(1);	//minimal delay
