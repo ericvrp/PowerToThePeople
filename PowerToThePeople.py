@@ -30,13 +30,13 @@ def	main():
 		#print 'Arduino: ', s,
 
 		now = time()
-		watt = 3600 / (now - lastLedFlashTime)
+		current_usage = '%s : %4d Watt' % (asctime(), 3600 / (now - lastLedFlashTime))
 		lastLedFlashTime = now
 		nLedFlashes += 1
 
-		print '%s : %4d Watt' % (asctime(), watt)
+		print current_usage
 		try:
-			r = get('http://127.0.0.1:8083/watt/%d Watt' % watt, timeout=1.0)	#update webcache
+			r = get('http://127.0.0.1:8083/watt/' + current_usage, timeout=1.0)	#update webcache
 		except Timeout:
 			print 'Warning: webcache update failed'
 
