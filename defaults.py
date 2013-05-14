@@ -1,7 +1,7 @@
 #
 # Copy this file to config.py and insert to correct values there!
 #
-source            = <gpio pin number> or <'serial'>
+ldr_gpio_pin      = 0
 
 webcache_enabled  = False
 

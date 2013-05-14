@@ -4,6 +4,7 @@ from requests import get
 from requests.exceptions import Timeout, ConnectionError
 from time import time, strftime, asctime
 from subprocess import check_output
+import RPi.GPIO as GPIO
 
 try:
 	from config import *
@@ -12,36 +13,23 @@ except ImportError:
 	print 'Warning! copy defaults.py to config.py and edit that file!'
 
 
+def waitForLedFlash():
+	GPIO.wait_for_edge(ldr_gpio_pin, GPIO.RISING)
+	GPIO.wait_for_edge(ldr_gpio_pin, GPIO.FALLING)	#poormens debounce
+
+
 def	main():
-	if source == 'serial':
-		import serial
+	#simply connect ldr_gpio_pin to 5V because we use a pulldown resistor from software
 
-		usbDevice = check_output('ls /dev/ttyACM*', shell=True).strip()
-		ser = serial.Serial(usbDevice, 115200)
-		ser.flushInput()
+	GPIO.setmode(GPIO.BCM)
+	GPIO.setup(ldr_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+	waitForLedFlash()	#Skip first led flash to get a proper duration for the first one we'll use
 
-		def waitForLedFlash():
-			return ser.readline()
-
-	else:	#source = gpio pin number (simply connect gpio pin to 5V because we use a pulldown resistor from software)
-		import RPi.GPIO as GPIO
-
-		GPIO.setmode(GPIO.BCM)
-		GPIO.setup(source, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-		#GPIO.add_event_detect(source, GPIO.RISING, signalRising, 100)      #100ms debounce time
-
-		def waitForLedFlash():
-			GPIO.wait_for_edge(source, GPIO.RISING)
-			GPIO.wait_for_edge(source, GPIO.FALLING)	#poor mens debounce
-			return '<led flashed>'
-
-	waitForLedFlash()	#Skip first led flash to get a proper duration after this
 	lastPvOutputTime = lastLedFlashTime = time()	#first impression duration will be inaccurate
 	nLedFlashes = 0
 
 	while True:
-		s = waitForLedFlash()
-		#print s
+		waitForLedFlash()
 
 		now = time()
 		current_usage = '%s : %4d Watt' % (asctime(), 3600 / (now - lastLedFlashTime))
