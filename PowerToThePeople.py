@@ -40,8 +40,10 @@ def	main():
 		try:
 			if webcache_enabled:
 				get('http://127.0.0.1:8083/watt/' + current_usage, timeout=1.0)	#update webcache
-		except Timeout:
+		except ConnectionError:
 			print 'Warning: webcache update failed'
+		except Timeout:
+			print 'Warning: webcache update timed out'
 
 		if pvoutput_interval and now >= lastPvOutputTime + pvoutput_interval:
 			watt_average = nLedFlashes * 3600 / (now - lastPvOutputTime)
@@ -57,6 +59,9 @@ def	main():
 				get('http://pvoutput.org/service/r2/addstatus.jsp', params=payload, timeout=5.0)
 			except ConnectionError:
 				print 'Warning: pvoutput update failed'
+			except Timeout:
+				print 'Warning: pvoutput timed out'
+
 			lastPvOutputTime = now
 			nLedFlashes = 0
 
