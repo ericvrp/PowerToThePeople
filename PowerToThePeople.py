@@ -16,10 +16,10 @@ except ImportError:
 
 def waitForLedFlash():
 	while GPIO.input(ldr_gpio_pin) == GPIO.LOW:	#Wait for a pin rising
-		sleep(0.00001) #minimal sleep
+		sleep(0.01) #minimal sleep
 	sleep(0.25)	#debounce sleep
-	while GPIO.input(ldr_gpio_pin) != GPIO.LOW:	#Make really really sure we get a LOW here
-		sleep(0.00001) #minimal sleep
+	while GPIO.input(ldr_gpio_pin) == GPIO.HIGH:	#Make really really sure we get a LOW here
+		sleep(0.01) #minimal sleep
 
 
 def	main():
