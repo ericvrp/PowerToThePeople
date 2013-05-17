@@ -14,23 +14,10 @@ except ImportError:
 	print 'Warning! copy defaults.py to config.py and edit that file!'
 
 
-nTimesPinRising = 0
-def pinRisingCallback(pin):
-	global nTimesPinRising
-	nTimesPinRising += 1
-
-
-def waitForLedFlashWithCallback():
-	global nTimesPinRising
-	n = nTimesPinRising
-	while n == nTimesPinRising:	#let's hope this does not get optimized away
-		sleep(0.2)
-
-
 def waitForLedFlash():
 	while GPIO.input(ldr_gpio_pin) == GPIO.LOW:	#Wait for a pin rising
 		sleep(0.00001) #minimal sleep
-	sleep(0.2)	#debounce sleep
+	sleep(0.25)	#debounce sleep
 	while GPIO.input(ldr_gpio_pin) != GPIO.LOW:	#Make really really sure we get a LOW here
 		sleep(0.00001) #minimal sleep
 
@@ -40,7 +27,6 @@ def	main():
 
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setup(ldr_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-	#GPIO.add_event_detect(ldr_gpio_pin, GPIO.RISING, pinRisingCallback, 200)
 	waitForLedFlash()	#Skip first led flash to get a proper duration for the first one we'll use
 
 	lastPvOutputTime = lastLedFlashTime = time()	#first impression duration will be inaccurate
