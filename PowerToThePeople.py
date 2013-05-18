@@ -6,6 +6,8 @@ from time import time, strftime, asctime, sleep
 from sys import stdout
 from subprocess import check_output
 import RPi.GPIO as GPIO
+import pymongo  #http://api.mongodb.org/python/current/tutorial.html
+
 
 try:
 	from config import *
@@ -14,7 +16,7 @@ except ImportError:
 	print 'Warning! copy defaults.py to config.py and edit that file!'
 
 
-def waitForLedFlash():
+def _waitForLedFlash():
 	while GPIO.input(ldr_gpio_pin) == GPIO.LOW:	#Wait for a pin rising
 		sleep(0.01) #minimal sleep
 	sleep(0.25)	#debounce sleep
@@ -23,24 +25,31 @@ def waitForLedFlash():
 
 
 def	main():
-	#simply connect ldr_gpio_pin to 5V because we use a pulldown resistor from software
+	connection = pymongo.Connection(mongodb_url)
+	PowerToThePeople_collection = connection.mongolab001db.PowerToThePeople
+
+	#simply connect ldr_gpio_pin to 3.3V because we use a pulldown resistor from software
 
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setup(ldr_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-	waitForLedFlash()	#Skip first led flash to get a proper duration for the first one we'll use
+	_waitForLedFlash()	#Skip first led flash to get a proper duration for the first one we'll use
 
 	lastPvOutputTime = lastLedFlashTime = time()	#first impression duration will be inaccurate
 	nLedFlashes = 0
 
 	while True:
-		waitForLedFlash()
+		_waitForLedFlash()
 
 		now = time()
-		current_usage = '%s : %4d Watt' % (asctime(), 3600 / (now - lastLedFlashTime))
+		watt = 3600 / (now - lastLedFlashTime)
+		current_usage = '%s : %4d Watt' % (asctime(), watt)
 		lastLedFlashTime = now
 		nLedFlashes += 1
 
 		print current_usage
+
+		PowerToThePeople_collection.insert({'w' : watt})
+
 		try:
 			if webcache_enabled:
 				get('http://127.0.0.1:8083/watt/' + current_usage, timeout=1.0)	#update webcache
@@ -73,5 +82,9 @@ def	main():
 
 
 if __name__ == '__main__':
-	main()
-	#GPIO.cleanup()
+	try:
+		main()
+	except KeyboardException:
+		print 'Interrupted by user'
+	GPIO.cleanup()
+
