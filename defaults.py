@@ -3,7 +3,7 @@
 #
 ldr_gpio_pin      = 0
 
-mongodb_url = 'mongodb://<user>:<pass>@ds057867.mongolab.com:57867/<database>'
+mongodb_url       = 'mongodb://<user>:<pass>@ds057867.mongolab.com:57867/<database>'
 
 webcache_enabled  = False
 

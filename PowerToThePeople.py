@@ -4,6 +4,7 @@ from requests import get
 from requests.exceptions import Timeout, ConnectionError
 from time import time, strftime, asctime, sleep
 from sys import stdout
+from exceptions import KeyboardInterrupt
 from subprocess import check_output
 import RPi.GPIO as GPIO
 import pymongo  #http://api.mongodb.org/python/current/tutorial.html
@@ -25,7 +26,7 @@ def _waitForLedFlash():
 
 
 def	main():
-	connection = pymongo.Connection(mongodb_url)
+	connection = pymongo.Connection(mongodb_uri)
 	PowerToThePeople_collection = connection.mongolab001db.PowerToThePeople
 
 	#simply connect ldr_gpio_pin to 3.3V because we use a pulldown resistor from software
@@ -84,7 +85,7 @@ def	main():
 if __name__ == '__main__':
 	try:
 		main()
-	except KeyboardException:
+	except KeyboardInterrupt:
 		print 'Interrupted by user'
 	GPIO.cleanup()
 
