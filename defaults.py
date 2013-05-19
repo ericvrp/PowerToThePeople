@@ -3,6 +3,8 @@
 #
 ldr_gpio_pin      = 0
 
+mongodb_url = 'mongodb://<user>:<pass>@ds057867.mongolab.com:57867/<database>'
+
 webcache_enabled  = False
 
 pvoutput_interval = 0		#in seconds (or 0 to disable pvoutput)
