@@ -10,6 +10,9 @@ import RPi.GPIO as GPIO
 import pymongo  #http://api.mongodb.org/python/current/tutorial.html
 
 
+MY_USERID = '<userid>'
+
+
 try:
 	from config import *
 except ImportError:
@@ -27,7 +30,8 @@ def _waitForLedFlash():
 
 def	main():
 	connection = pymongo.Connection(mongodb_uri)
-	PowerToThePeople_collection = connection.mongolab001db.PowerToThePeople
+	Wattage = connection.mongolab001db.Wattage
+	CurrentWattage = connection.mongolab001db.CurrentWattage
 
 	#simply connect ldr_gpio_pin to 3.3V because we use a pulldown resistor from software
 
@@ -35,21 +39,37 @@ def	main():
 	GPIO.setup(ldr_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 	_waitForLedFlash()	#Skip first led flash to get a proper duration for the first one we'll use
 
-	lastPvOutputTime = lastLedFlashTime = time()	#first impression duration will be inaccurate
+	lastWattDataTime = lastPvOutputTime = lastLedFlashTime = time()	#first impression duration will be inaccurate
 	nLedFlashes = 0
+	watt_data = []
 
 	while True:
 		_waitForLedFlash()
 
 		now = time()
-		watt = 3600 / (now - lastLedFlashTime)
+		nowJS = int(now * 1000)	#milliseconds. As in Javascript 'new Date().getTime()'
+		watt = int(3600 / (now - lastLedFlashTime))
 		current_usage = '%s : %4d Watt' % (asctime(), watt)
 		lastLedFlashTime = now
 		nLedFlashes += 1
 
 		print current_usage
 
-		PowerToThePeople_collection.insert({'w' : watt})
+		CurrentWattage.update({'userId' : MY_USERID}, {
+			'userId'    : MY_USERID,		#UNIQUE INDEX
+			'createdAt' : nowJS, 
+			'watt'      : watt},
+			upsert = True)
+
+		watt_data.append(watt)
+		if now >= lastWattDataTime + 5 * 60:	#5 minute updates
+			Wattage.insert({
+				'userId'      : MY_USERID,	#INDEX
+				'createdAt'   : nowJS,
+				'averageWatt' : int(sum(watt_data) / len(watt_data)), 
+				'watt'        : watt_data})
+			lastWattDataTime = now
+			watt_data = []
 
 		try:
 			if webcache_enabled:
