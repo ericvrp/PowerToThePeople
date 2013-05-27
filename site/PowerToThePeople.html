@@ -1,0 +1,28 @@
+<body>
+	{{> page}}
+</body>
+
+<template name="page">
+	<div class="container">
+		<div class="span5">
+			<div style="float: right">
+				{{loginButtons align="right"}}
+			</div>
+		</div>
+	
+		<div class="span5">
+			{{> Power}}
+		</div>
+		<div class="span5">
+			{{> Energy}}
+		</div>
+	</div>
+</template>
+
+<template name="Power">
+	{{watt}} Watt
+</template>
+
+<template name="Energy">
+	{{kWhLast24Hours}} kWh used in the last 24 hours
+</template>
