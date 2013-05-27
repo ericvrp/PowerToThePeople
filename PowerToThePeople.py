@@ -64,7 +64,7 @@ def	main():
 		watt_data.append(watt)
 		if mongodb_interval and now >= lastWattDataTime + mongodb_interval:
 			interval    = now - lastWattDataTime
-			averageWatt = sum(watt_data) / len(watt_data)
+			averageWatt = float(sum(watt_data)) / len(watt_data)
 			Wattage.insert({
 				'userId'      : MY_USERID,				#INDEX
 				'createdAt'   : nowJS,
