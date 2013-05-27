@@ -10,9 +10,6 @@ import RPi.GPIO as GPIO
 import pymongo  #http://api.mongodb.org/python/current/tutorial.html
 
 
-MY_USERID = '<userid>'
-
-
 try:
 	from config import *
 except ImportError:
@@ -55,8 +52,8 @@ def	main():
 
 		print current_usage
 
-		CurrentWattage.update({'userId' : MY_USERID}, {
-			'userId'    : MY_USERID,		#UNIQUE INDEX
+		CurrentWattage.update({'userId' : mongodb_userId}, {
+			'userId'    : mongodb_userId,		#UNIQUE INDEX
 			'createdAt' : nowJS, 
 			'watt'      : watt},
 			upsert = True)
@@ -66,7 +63,7 @@ def	main():
 			interval    = now - lastWattDataTime
 			averageWatt = float(sum(watt_data)) / len(watt_data)
 			Wattage.insert({
-				'userId'      : MY_USERID,				#INDEX
+				'userId'      : mongodb_userId,				#INDEX
 				'createdAt'   : nowJS,
 				'interval'    : interval,				#in seconds
 				'kWh'         : averageWatt * interval / 3600 / 1000,	#/ 1000 converts Wh -> kWH 
