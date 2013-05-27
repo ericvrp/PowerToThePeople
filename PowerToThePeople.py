@@ -46,9 +46,9 @@ def	main():
 	while True:
 		_waitForLedFlash()
 
-		now = time()
+		now   = time()
 		nowJS = int(now * 1000)	#milliseconds. As in Javascript 'new Date().getTime()'
-		watt = int(3600 / (now - lastLedFlashTime))
+		watt  = int(3600 / (now - lastLedFlashTime))
 		current_usage = '%s : %4d Watt' % (asctime(), watt)
 		lastLedFlashTime = now
 		nLedFlashes += 1
@@ -62,25 +62,22 @@ def	main():
 			upsert = True)
 
 		watt_data.append(watt)
-		if now >= lastWattDataTime + 5 * 60:	#5 minute updates
+		if mongodb_interval and now >= lastWattDataTime + mongodb_interval:
+			interval    = now - lastWattDataTime
+			averageWatt = sum(watt_data) / len(watt_data)
 			Wattage.insert({
-				'userId'      : MY_USERID,	#INDEX
+				'userId'      : MY_USERID,				#INDEX
 				'createdAt'   : nowJS,
-				'averageWatt' : int(sum(watt_data) / len(watt_data)), 
+				'interval'    : interval,				#in seconds
+				'kWh'         : averageWatt * interval / 3600 / 1000,	#/ 1000 converts Wh -> kWH 
+				'averageWatt' : averageWatt,				#during interval (power used)
 				'watt'        : watt_data})
 			lastWattDataTime = now
 			watt_data = []
 
-		try:
-			if webcache_enabled:
-				get('http://127.0.0.1:8083/watt/' + current_usage, timeout=1.0)	#update webcache
-		except ConnectionError:
-			print 'Warning: webcache update failed'
-		except Timeout:
-			print 'Warning: webcache update timed out'
-
 		if pvoutput_interval and now >= lastPvOutputTime + pvoutput_interval:
-			watt_average = nLedFlashes * 3600 / (now - lastPvOutputTime)
+			interval     = now - lastPvOutputTime
+			watt_average = nLedFlashes * 3600 / interval
 		 	#print 'Watt Average %d' % watt_average
 			payload = {
 				'key' : pvoutput_key,
@@ -95,7 +92,6 @@ def	main():
 				print 'Warning: pvoutput update failed'
 			except Timeout:
 				print 'Warning: pvoutput timed out'
-
 			lastPvOutputTime = now
 			nLedFlashes = 0
 
