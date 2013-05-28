@@ -9,20 +9,38 @@
 				{{loginButtons align="right"}}
 			</div>
 		</div>
-	
-		<div class="span5">
-			{{> Power}}
-		</div>
-		<div class="span5">
-			{{> Energy}}
-		</div>
+
+		{{> Power}}
+		{{> Energy}}
+
+		{{!> map}}
 	</div>
 </template>
 
 <template name="Power">
-	{{watt}} Watt
+	<div class="span1">
+		{{watt}} Watt
+	</div>
 </template>
 
 <template name="Energy">
-	{{kWhLast24Hours}} kWh used in the last 24 hours
+	<div class="span1">
+		{{kWhLast24Hours}} kWh used in the last 24 hours
+	</div>
+</template>
+
+<template name='map'>
+	<div class='timeline-wrapper'>
+		{{#if videoDuration}}
+		  {{#constant}}X
+		  <svg id='video-map' width='100%' height='60'>    
+		    <g class='map-wrap' transform = 'translate(0,60)'>
+		        <rect class='timeline-click-zone' y='-60' height='60'></rect>
+		        <g id='caption-spans' class='caption-spans'></g>
+		        <line id='current-position' y1='0' y2='-60'></line>
+		    </g>
+		  </svg>Y
+		  {{/constant}}
+		{{/if}}
+	</div>
 </template>
