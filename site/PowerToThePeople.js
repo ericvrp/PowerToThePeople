@@ -2,3 +2,7 @@
 
 CurrentWattage = new Meteor.Collection("CurrentWattage");
 Wattage        = new Meteor.Collection("Wattage");
+
+log = function(s) {
+	console.log(s);
+}

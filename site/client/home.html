@@ -1,46 +1,28 @@
+<head>
+	<title>Power To The People</title>
+</head>
+
 <body>
 	{{> page}}
 </body>
 
 <template name="page">
 	<div class="container">
-		<div class="span5">
+		<div class="row span8">
 			<div style="float: right">
 				{{loginButtons align="right"}}
 			</div>
 		</div>
-
-		{{> Power}}
-		{{> Energy}}
-
-		{{!> map}}
+		<br />
+		<p>{{> Power}}<br />
+		{{> Energy}}</p>
 	</div>
 </template>
 
 <template name="Power">
-	<div class="span1">
-		{{watt}} Watt
-	</div>
+	{{watt}} Watt
 </template>
 
 <template name="Energy">
-	<div class="span1">
-		{{kWhLast24Hours}} kWh used in the last 24 hours
-	</div>
-</template>
-
-<template name='map'>
-	<div class='timeline-wrapper'>
-		{{#if videoDuration}}
-		  {{#constant}}X
-		  <svg id='video-map' width='100%' height='60'>    
-		    <g class='map-wrap' transform = 'translate(0,60)'>
-		        <rect class='timeline-click-zone' y='-60' height='60'></rect>
-		        <g id='caption-spans' class='caption-spans'></g>
-		        <line id='current-position' y1='0' y2='-60'></line>
-		    </g>
-		  </svg>Y
-		  {{/constant}}
-		{{/if}}
-	</div>
+	{{kWhLast24Hours}} kWh used in the last 24 hours
 </template>
