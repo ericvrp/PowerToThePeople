@@ -1,12 +1,16 @@
 <template name="content">
+	<h1>Power To The People</h1>
+	<br />
 	{{> Power}}<br />
 	{{> Energy}}
 </template>
 
 <template name="Power">
-	{{watt}} Watt
+	{{watt}}<br />
 </template>
 
 <template name="Energy">
-	{{kWhLast24Hours}} kWh used in the last 24 hours
+	{{kWhDuring24Hours 0}} kWh : last 24 hours<br />
+	{{kWhDuring24Hours 1}} kWh : 24 hours yesterday<br />
+	{{kWhDuring24Hours 7}} kWh : 24 hours a week ago
 </template>
