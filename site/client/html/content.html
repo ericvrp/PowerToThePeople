@@ -1,16 +1,22 @@
 <template name="content">
-	<h1>Power To The People</h1>
-	<br />
-	{{> Power}}<br />
-	{{> Energy}}
-</template>
-
-<template name="Power">
-	{{watt}}<br />
-</template>
-
-<template name="Energy">
-	{{kWhDuring24Hours 0}} kWh : last 24 hours<br />
-	{{kWhDuring24Hours 1}} kWh : 24 hours yesterday<br />
-	{{kWhDuring24Hours 7}} kWh : 24 hours a week ago
+	{{#if userId}}
+		{{#if watt}}
+			<h4>{{watt}}</h4>
+			<p>
+				{{kWhDuring24Hours 0}} kWh : last 24 hours<br />
+				{{kWhDuring24Hours 1}} kWh : 24 hours yesterday<br />
+				{{kWhDuring24Hours 7}} kWh : 24 hours a week ago
+			</p>
+			{{> d3vis}}
+			{{> raphaelgfx}}
+		{{else}}
+			<div class="alert alert-warning">
+				Please supply some data
+			</div>
+		{{/if}}
+	{{else}}
+		<div class="alert alert-error">
+			Please log in to view the data
+		</div>
+	{{/if}}
 </template>
