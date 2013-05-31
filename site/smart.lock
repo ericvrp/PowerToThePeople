@@ -1,0 +1,19 @@
+{
+  "meteor": {
+    "git": "https://github.com/meteor/meteor.git",
+    "branch": "master",
+    "commit": "5d736d4bf0448c7db1f9b47124dfafc34a9631bb"
+  },
+  "dependencies": {
+    "basePackages": {
+      "raphaeljs-package": {}
+    },
+    "packages": {
+      "raphaeljs-package": {
+        "git": "https://github.com/doubledare/raphaeljs-package.git",
+        "tag": "v0.1.0",
+        "commit": "3945af98a318e189d45e9118db4040ea8cbb9596"
+      }
+    }
+  }
+}
