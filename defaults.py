@@ -4,6 +4,7 @@
 ldr_gpio_pin      = 0
 
 mongodb_url       = 'mongodb://<user>:<pass>@ds<num>.mongolab.com:57867/<database>'
+mongodb_collectionPrefix = ''
 mongodb_interval  = 0	#in seconds (or 0 to disable sample output) (current wattage updated every second)
 mongodb_userId    = '<db.user._id>'
 
