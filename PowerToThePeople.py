@@ -6,8 +6,14 @@ from time import time, strftime, asctime, sleep
 from sys import stdout
 from exceptions import KeyboardInterrupt
 from subprocess import check_output
-import RPi.GPIO as GPIO
 import pymongo  #http://api.mongodb.org/python/current/tutorial.html
+
+try:
+	import RPi.GPIO as GPIO		#Raspberry Pi
+except ImportError:
+	import BBIO.GPIO as GPIO	#Beaglebone Black
+	GPIO.BCM = None
+	GPIO.setmode = lambda x: None
 
 
 try:
