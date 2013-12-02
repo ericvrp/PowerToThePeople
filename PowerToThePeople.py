@@ -32,7 +32,7 @@ def _waitForLedFlash():
 
 
 def	main():
-	connection = pymongo.Connection(mongodb_uri)
+	connection = pymongo.Connection(mongodb_url)
 	Wattage = connection.mongolab001db.Wattage
 	CurrentWattage = connection.mongolab001db.CurrentWattage
 
