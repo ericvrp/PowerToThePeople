@@ -1,0 +1,1 @@
+This is some unmaintained code to play around with localy generating some nice graphs with Meteor/Node.js and some basic graphics packages. I would recogment D3 and not RaphaelJS because D3 is truely powerful whereas the latter is mostly to hide some basic functionality differences between browsers.
